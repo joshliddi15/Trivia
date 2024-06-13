@@ -14,9 +14,9 @@ export class Board {
   constructor(gameState, gameData) {
     // Universal
     this.scoreMap = {
-      easy: 1,
-      medium: 2,
-      hard: 3,
+      easy: 10,
+      medium: 20,
+      hard: 30,
     };
 
     // this.testSomething();
