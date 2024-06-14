@@ -461,7 +461,7 @@ export class Board {
     this.difficulty = question.results[0].difficulty;
 
     this.answers.splice(this.correctIndex, 0, this.correct);
-
+    document.querySelector("#answer").innerText = this.answers[this.correctIndex]
     for (let index = 0; index < this.answers.length; index++) {
       const answerButton = document.createElement("input");
       answerButton.type = "button";
