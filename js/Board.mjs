@@ -19,6 +19,8 @@ export class Board {
       hard: 30,
     };
 
+    this.difficulties = ["easy", "medium", "hard"]
+
     // this.testSomething();
 
 
@@ -212,9 +214,16 @@ export class Board {
       // Load the question
       const difficulty = document.querySelector("#difficulty");
       const category = document.querySelector("#categories");
-      this.populateQuestion(
-        await this.gameData.getQuestion(difficulty.value, category.value)
-      );
+      if (!(category.value in this.gameData.questions) || !(difficulty.value in this.gameData.questions[category.value]) || (this.gameData.questions[category.value][difficulty.value].length == 0))
+      {
+          await this.gameData.requestQuestions(difficulty.value, category.value)
+      }
+      let question;
+      do {
+          question = this.gameData.getNextQuestion(difficulty.value, category.value);
+      } while (!question);
+      
+      this.populateQuestion(question)
 
       // Show it
       questionText.classList.remove("hidden");
@@ -451,17 +460,18 @@ export class Board {
   async populateQuestion(question) {
     const questionElement = document.getElementById("question");
     const text = questionElement.querySelector("#question_text");
-
-    text.innerHTML = question.results[0].question;
+    
+    text.innerHTML = question.question;
 
     /** @type Array<string> */
-    this.answers = question.results[0].incorrect_answers;
-    this.correct = question.results[0].correct_answer;
-    this.correctIndex = Math.floor(Math.random() * 3);
-    this.difficulty = question.results[0].difficulty;
+    this.answers = question.incorrect_answers;
+    this.correct = question.correct_answer;
+    this.correctIndex = Math.floor(Math.random() * (this.answers.length));
+    this.difficulty = question.difficulty;
 
     this.answers.splice(this.correctIndex, 0, this.correct);
-
+    console.log(this.answers[this.correctIndex])
+    document.querySelector("#answer").innerText = decodeEntities(this.answers[this.correctIndex]);
     for (let index = 0; index < this.answers.length; index++) {
       const answerButton = document.createElement("input");
       answerButton.type = "button";

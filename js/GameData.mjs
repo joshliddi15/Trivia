@@ -9,6 +9,8 @@ export class GameData {
    */
   constructor() {
     this.apiURL = "https://opentdb.com";
+    this.questions = {}
+    this.usedQuestions = {}
     this._init();
   }
 
@@ -42,11 +44,64 @@ export class GameData {
     }
 
     const result = await fetch(queryURL);
-    console.log(result);
     const data = await result.json();
 
     return data;
   }
+
+  getNextQuestion(difficulty,category)
+  {
+    const pool = this.questions[category][difficulty];
+    const randomIndex = Math.floor(Math.random() * pool.length);
+
+    const question = pool.splice(randomIndex, 1)[0];
+
+    this.usedQuestions[category] = this.usedQuestions[category] || {}
+    this.usedQuestions[category][difficulty] = this.usedQuestions[category][difficulty] || []
+
+    let copy = JSON.parse(JSON.stringify(question))
+    this.usedQuestions[category][difficulty].push(copy)
+
+    return question
+  }
+
+  async requestQuestions(difficulty, category)
+  {
+    let num;
+    let numData = await fetch(`https://opentdb.com/api_count.php?category=${category}`);
+    let numbers = await numData.json()
+    switch(difficulty)
+    {
+      case "easy":
+        num = numbers["category_question_count"]["total_easy_question_count"]
+      break;
+
+      case "medium":
+        num = numbers["category_question_count"]["total_easy_question_count"]
+      break;
+
+      case "hard":
+        num = numbers["category_question_count"]["total_medium_question_count"]
+      break;
+    }
+    
+    if (!num || num > 50)
+       num = 50
+   
+    let queryURL = `${this.apiURL}/api.php?category=${category}&difficulty=${difficulty}&amount=${num}&token=${this.token}`;
+    const result = await fetch(queryURL);
+    const data = await result.json()
+
+    this.questions[category] = {}
+    if (data.results.length == 0)
+    {
+        this.questions[category][difficulty] = JSON.parse(JSON.stringify(this.usedQuestions[category][difficulty]))
+        this.usedQuestions[category][difficulty] = []
+    }
+    else
+        this.questions[category][difficulty] = data.results
+  }
+
   async getCategories() {
     let queryURL = '';
 
